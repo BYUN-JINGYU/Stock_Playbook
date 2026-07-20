@@ -1,0 +1,298 @@
+---
+/**
+ * 캔들차트 일러스트 렌더러.
+ * frontmatter의 chart 스펙(candles + overlays)을 받아 정적 SVG로 그린다.
+ * 색상 관행: 상승 = 빨강(--up), 하락 = 파랑(--down) — 국내 차트 관행.
+ */
+interface Candle { o: number; h: number; l: number; c: number; v?: number }
+interface Point { i: number; price: number }
+interface Chart {
+  title: string;
+  description?: string;
+  kind?: 'candle' | 'line';
+  candles: Candle[];
+  hlines?: { price: number; label?: string }[];
+  lines?: { points: Point[]; label?: string }[];
+  zones?: { from: number; to: number; label?: string }[];
+  markers?: { i: number; type: 'buy' | 'sell' | 'note'; label?: string }[];
+  sma?: { period: number; label?: string }[];
+}
+
+interface Props { chart: Chart; index?: number }
+const { chart, index = 0 } = Astro.props;
+
+// ── 데이터 정제: h/l이 몸통을 포함하도록 보정, 인덱스 범위 클램프 ──
+const candles: Candle[] = chart.candles.map((k) => ({
+  o: k.o,
+  c: k.c,
+  h: Math.max(k.h, k.o, k.c),
+  l: Math.min(k.l, k.o, k.c),
+  v: k.v,
+}));
+const n = candles.length;
+const clampI = (i: number) => Math.max(0, Math.min(n - 1, Math.round(i)));
+
+const isLine = chart.kind === 'line'; // 경제지표 등 단일 시계열용 라인 모드
+const hasVolume = !isLine && candles.some((k) => typeof k.v === 'number' && k.v > 0);
+
+// ── 레이아웃 ──
+const W = 720;
+const priceH = 300;
+const volH = hasVolume ? 64 : 0;
+const gapH = hasVolume ? 14 : 0;
+const padTop = 18;
+const padBottom = 12;
+const padLeft = 14;
+const padRight = 58; // 우측 가격 라벨 공간
+const H = padTop + priceH + gapH + volH + padBottom;
+const plotW = W - padLeft - padRight;
+
+// ── 스케일 ──
+const overlayPrices: number[] = [
+  ...(chart.hlines ?? []).map((h) => h.price),
+  ...(chart.lines ?? []).flatMap((l) => l.points.map((p) => p.price)),
+  ...(chart.zones ?? []).flatMap((z) => [z.from, z.to]),
+];
+let pMin = Math.min(...candles.map((k) => k.l), ...overlayPrices);
+let pMax = Math.max(...candles.map((k) => k.h), ...overlayPrices);
+if (pMax === pMin) { pMax += 1; pMin -= 1; }
+const pPad = (pMax - pMin) * 0.06;
+pMin -= pPad;
+pMax += pPad;
+
+const x = (i: number) => padLeft + ((i + 0.5) / n) * plotW;
+const y = (p: number) => padTop + ((pMax - p) / (pMax - pMin)) * priceH;
+const slot = plotW / n;
+const bodyW = Math.max(2.5, Math.min(14, slot * 0.62));
+
+const vMax = hasVolume ? Math.max(...candles.map((k) => k.v ?? 0)) : 0;
+const volTop = padTop + priceH + gapH;
+const vy = (v: number) => volTop + (1 - v / vMax) * volH;
+
+// 거래량 바 좌표는 프론트매터에서 미리 계산 (템플릿 내 비교 연산자 회피)
+const volBars = hasVolume
+  ? candles
+      .map((k, i) => ({ v: k.v ?? 0, up: k.c >= k.o, i }))
+      .filter((b) => b.v > 0)
+      .map((b) => ({
+        x: x(b.i) - bodyW / 2,
+        y: vy(b.v),
+        h: volTop + volH - vy(b.v),
+        up: b.up,
+      }))
+  : [];
+
+// ── 그리드: 가격 눈금 4개 ──
+const ticks = Array.from({ length: 4 }, (_, i) => {
+  const p = pMin + ((i + 1) / 5) * (pMax - pMin);
+  return { p, y: y(p) };
+});
+const fmt = (p: number) => {
+  const range = pMax - pMin;
+  const digits = range < 5 ? 2 : range < 50 ? 1 : 0;
+  return p.toLocaleString('ko-KR', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+};
+
+// ── SMA 계산 ──
+const smaPaths = (chart.sma ?? []).map((s, si) => {
+  const period = Math.max(2, Math.min(n - 1, Math.round(s.period)));
+  const pts: string[] = [];
+  for (let i = period - 1; i < n; i++) {
+    let sum = 0;
+    for (let j = i - period + 1; j <= i; j++) sum += candles[j].c;
+    const avg = sum / period;
+    pts.push(`${pts.length === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(avg).toFixed(1)}`);
+  }
+  return { d: pts.join(' '), label: s.label ?? `${period}일선`, colorVar: si === 0 ? '--gold' : '--violet' };
+});
+
+// 라인 모드: 종가(c)를 이은 경로 + 은은한 영역 채움
+const seriesPath = isLine
+  ? candles.map((k, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(k.c).toFixed(1)}`).join(' ')
+  : '';
+const areaPath = isLine
+  ? `${seriesPath} L${x(n - 1).toFixed(1)},${(padTop + priceH).toFixed(1)} L${x(0).toFixed(1)},${(padTop + priceH).toFixed(1)} Z`
+  : '';
+
+const lineOverlays = (chart.lines ?? []).map((l) => ({
+  d: l.points
+    .map((p, idx) => `${idx === 0 ? 'M' : 'L'}${x(clampI(p.i)).toFixed(1)},${y(p.price).toFixed(1)}`)
+    .join(' '),
+  label: l.label,
+  end: l.points[l.points.length - 1],
+}));
+
+const uid = `cf${index}`;
+---
+
+<figure class="chart-figure">
+  <svg
+    viewBox={`0 0 ${W} ${H}`}
+    role="img"
+    aria-labelledby={`${uid}-title`}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title id={`${uid}-title`}>{chart.title}</title>
+
+    {/* 가격 구간 존 */}
+    {(chart.zones ?? []).map((z) => {
+      const top = y(Math.max(z.from, z.to));
+      const h = Math.abs(y(z.from) - y(z.to));
+      return (
+        <g>
+          <rect x={padLeft} y={top} width={plotW} height={h} fill="var(--accent)" opacity="0.08" />
+          {z.label && (
+            <text x={padLeft + 6} y={top + 14} font-size="11" fill="var(--muted)" font-weight="600">
+              {z.label}
+            </text>
+          )}
+        </g>
+      );
+    })}
+
+    {/* 그리드 + 가격 눈금 */}
+    {ticks.map((t) => (
+      <g>
+        <line x1={padLeft} y1={t.y} x2={padLeft + plotW} y2={t.y} stroke="var(--line)" stroke-width="1" />
+        <text x={W - padRight + 8} y={t.y + 4} font-size="11" fill="var(--muted)">{fmt(t.p)}</text>
+      </g>
+    ))}
+
+    {/* 수평선 (지지/저항 등) */}
+    {(chart.hlines ?? []).map((h) => (
+      <g>
+        <line
+          x1={padLeft} y1={y(h.price)} x2={padLeft + plotW} y2={y(h.price)}
+          stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="6 4"
+        />
+        {h.label && (
+          <text x={padLeft + 6} y={y(h.price) - 6} font-size="11.5" font-weight="700" fill="var(--ink-2)">
+            {h.label}
+          </text>
+        )}
+      </g>
+    ))}
+
+    {/* 라인 모드: 시계열 라인 + 영역 */}
+    {isLine && (
+      <g>
+        <path d={areaPath} fill="var(--accent)" opacity="0.08" />
+        <path d={seriesPath} fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" />
+      </g>
+    )}
+
+    {/* 캔들 모드 */}
+    {!isLine &&
+      candles.map((k, i) => {
+        const up = k.c >= k.o;
+        const color = up ? 'var(--up)' : 'var(--down)';
+        const cx = x(i);
+        const bodyTop = y(Math.max(k.o, k.c));
+        const bodyH = Math.max(1.5, Math.abs(y(k.o) - y(k.c)));
+        return (
+          <g>
+            <line x1={cx} y1={y(k.h)} x2={cx} y2={y(k.l)} stroke={color} stroke-width="1.4" />
+            <rect
+              x={cx - bodyW / 2} y={bodyTop} width={bodyW} height={bodyH}
+              fill={up ? color : 'var(--surface)'}
+              stroke={color} stroke-width="1.4" rx="1"
+            />
+          </g>
+        );
+      })}
+
+    {/* 이동평균선 */}
+    {smaPaths.map((s) => (
+      <path d={s.d} fill="none" stroke={`var(${s.colorVar})`} stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9" />
+    ))}
+
+    {/* 추세선 등 사용자 정의 선 */}
+    {lineOverlays.map((l) => (
+      <g>
+        <path d={l.d} fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-linecap="round" />
+        {l.label && (
+          <text
+            x={Math.min(x(clampI(l.end.i)) + 6, W - padRight - 2)}
+            y={y(l.end.price) - 6}
+            font-size="11.5" font-weight="700" fill="var(--ink-2)" text-anchor="end"
+          >
+            {l.label}
+          </text>
+        )}
+      </g>
+    ))}
+
+    {/* 매수/매도/참고 마커 (라인 모드에서는 종가 기준 배치) */}
+    {(chart.markers ?? []).map((m) => {
+      const i = clampI(m.i);
+      const raw = candles[i];
+      const k = isLine ? { ...raw, h: raw.c, l: raw.c } : raw;
+      const cx = x(i);
+      if (m.type === 'buy') {
+        const ty = y(k.l) + 10;
+        return (
+          <g>
+            <path d={`M${cx},${ty} l-6,9 l12,0 z`} fill="var(--up)" />
+            <text x={cx} y={ty + 23} font-size="11.5" font-weight="800" fill="var(--up)" text-anchor="middle">
+              {m.label ?? '매수'}
+            </text>
+          </g>
+        );
+      }
+      if (m.type === 'sell') {
+        const ty = y(k.h) - 10;
+        return (
+          <g>
+            <path d={`M${cx},${ty} l-6,-9 l12,0 z`} fill="var(--down)" />
+            <text x={cx} y={ty - 15} font-size="11.5" font-weight="800" fill="var(--down)" text-anchor="middle">
+              {m.label ?? '매도'}
+            </text>
+          </g>
+        );
+      }
+      const ty = y(k.h) - 12;
+      return (
+        <g>
+          <circle cx={cx} cy={ty} r="3" fill="var(--ink-2)" />
+          <text x={cx} y={ty - 8} font-size="11.5" font-weight="700" fill="var(--ink-2)" text-anchor="middle">
+            {m.label ?? ''}
+          </text>
+        </g>
+      );
+    })}
+
+    {/* 거래량 패널 */}
+    {hasVolume && (
+      <g>
+        <line x1={padLeft} y1={volTop + volH} x2={padLeft + plotW} y2={volTop + volH} stroke="var(--line)" stroke-width="1" />
+        {volBars.map((b) => (
+          <rect
+            x={b.x} y={b.y} width={bodyW} height={b.h}
+            fill={b.up ? 'var(--up)' : 'var(--down)'} opacity="0.45" rx="1"
+          />
+        ))}
+        <text x={padLeft} y={volTop + 4} font-size="10.5" fill="var(--muted)">거래량</text>
+      </g>
+    )}
+  </svg>
+
+  <figcaption>
+    <div class="fig-title">{chart.title}</div>
+    {chart.description && <div class="fig-desc">{chart.description}</div>}
+    <div class="chart-legend">
+      {!isLine && (
+        <span class="key"><span class="swatch" style="background:var(--up)"></span>상승</span>
+      )}
+      {!isLine && (
+        <span class="key"><span class="swatch" style="background:var(--down)"></span>하락</span>
+      )}
+      {isLine && (
+        <span class="key"><span class="swatch" style="background:var(--accent)"></span>지표 값</span>
+      )}
+      {smaPaths.map((s) => (
+        <span class="key"><span class="swatch" style={`background:var(${s.colorVar})`}></span>{s.label}</span>
+      ))}
+      <span class="key">※ 개념 설명용 예시 차트 (실제 시세 아님)</span>
+    </div>
+  </figcaption>
+</figure>

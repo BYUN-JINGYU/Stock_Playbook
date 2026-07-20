@@ -1,0 +1,141 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ChartFigure from '../../components/ChartFigure.astro';
+import {
+  categoryByName,
+  difficultyLabel,
+  RELIABILITY_LABELS,
+  marketLabel,
+  withBase,
+} from '../../utils/site';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('techniques', ({ data }) => !data.draft);
+  return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const cat = categoryByName(d.category);
+const diff = difficultyLabel(d.difficulty);
+const diffClass = diff === '초급' ? 'diff-easy' : diff === '중급' ? 'diff-mid' : 'diff-hard';
+const stars = '★'.repeat(d.reliability) + '☆'.repeat(5 - d.reliability);
+const updated = d.updated.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<Base title={d.title} description={d.summary}>
+  <div class="container">
+    <header class="article-head">
+      <nav class="crumb" aria-label="위치">
+        <a href={withBase('/')}>전체 기법</a>
+        <span>›</span>
+        <a href={withBase(`/category/${cat?.slug}`)}>{cat?.icon} {d.category}</a>
+      </nav>
+      <h1>{d.title}</h1>
+      <p class="summary">{d.summary}</p>
+      <div class="badges">
+        <span class={`badge ${diffClass}`}>난이도 · {diff}</span>
+        <span class="badge">신뢰도 <span class="stars">{stars}</span> {RELIABILITY_LABELS[d.reliability]}</span>
+        {d.markets.map((m) => <span class="badge market">{marketLabel(m)} 시장</span>)}
+        <span class="badge">업데이트 · {updated}</span>
+      </div>
+      <div class="article-actions">
+        <button class="action-btn" id="btn-bookmark" data-id={entry.id}>
+          <span class="ico" aria-hidden="true">☆</span>
+          <span class="txt">북마크</span>
+        </button>
+        <button class="action-btn" id="btn-read" data-id={entry.id}>
+          <span class="ico" aria-hidden="true">○</span>
+          <span class="txt">읽음으로 표시</span>
+        </button>
+      </div>
+    </header>
+
+    {d.indicator && (
+      <aside class="indicator-info">
+        <h2>지표 정보</h2>
+        <dl>
+          {d.indicator.publisher && (
+            <div><dt>발표 기관</dt><dd>{d.indicator.publisher}</dd></div>
+          )}
+          {d.indicator.frequency && (
+            <div><dt>발표 주기</dt><dd>{d.indicator.frequency}</dd></div>
+          )}
+          {d.indicator.where && (
+            <div><dt>확인처</dt><dd>{d.indicator.where}</dd></div>
+          )}
+        </dl>
+      </aside>
+    )}
+
+    {d.charts.map((chart, i) => <ChartFigure chart={chart} index={i} />)}
+
+    {d.watch_when.length > 0 && (
+      <aside class="watch-when">
+        <h2>🔔 이럴 때 주목</h2>
+        <ul>
+          {d.watch_when.map((w) => <li>{w}</li>)}
+        </ul>
+      </aside>
+    )}
+
+    <article class="prose">
+      <Content />
+    </article>
+
+    {d.tags.length > 0 && (
+      <div class="tag-row">
+        {d.tags.map((t) => (
+          <a class="tag" href={withBase(`/?q=${encodeURIComponent(t)}`)}>#{t}</a>
+        ))}
+      </div>
+    )}
+
+    {d.sources.length > 0 && (
+      <aside class="sources">
+        <h2>참고 자료</h2>
+        <ol>
+          {d.sources.map((s) => <li>{s}</li>)}
+        </ol>
+      </aside>
+    )}
+
+    <p class="disclaimer">
+      ⚠️ 이 글은 교육 목적의 정리 자료입니다. 특정 종목의 매수·매도 추천이 아니며, 어떤 기법도
+      수익을 보장하지 않습니다. 과거에 유효했던 기법이 미래에도 유효하다는 보장은 없으며,
+      모든 투자 판단과 책임은 투자자 본인에게 있습니다.
+    </p>
+  </div>
+
+  <script>
+    function getSet(key: string): Set<string> {
+      try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }
+      catch { return new Set(); }
+    }
+    function saveSet(key: string, set: Set<string>) {
+      localStorage.setItem(key, JSON.stringify([...set]));
+    }
+    function wire(btnId: string, storageKey: string, onLabel: string, offLabel: string, onIco: string, offIco: string) {
+      const btn = document.getElementById(btnId) as HTMLButtonElement | null;
+      if (!btn) return;
+      const id = btn.dataset.id!;
+      const set = getSet(storageKey);
+      const paint = () => {
+        const on = set.has(id);
+        btn.classList.toggle('active', on);
+        btn.querySelector('.txt')!.textContent = on ? onLabel : offLabel;
+        btn.querySelector('.ico')!.textContent = on ? onIco : offIco;
+      };
+      paint();
+      btn.addEventListener('click', () => {
+        if (set.has(id)) set.delete(id); else set.add(id);
+        saveSet(storageKey, set);
+        paint();
+      });
+    }
+    wire('btn-bookmark', 'sp:bookmarks', '북마크됨', '북마크', '★', '☆');
+    wire('btn-read', 'sp:read', '읽음', '읽음으로 표시', '✓', '○');
+  </script>
+</Base>

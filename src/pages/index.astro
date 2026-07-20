@@ -1,0 +1,109 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import TechniqueCard from '../components/TechniqueCard.astro';
+import CardScripts from '../components/CardScripts.astro';
+import { SITE_NAME, SITE_DESC, CATEGORY_META, withBase } from '../utils/site';
+
+const all = (await getCollection('techniques', ({ data }) => !data.draft)).sort(
+  (a, b) => {
+    const ca = CATEGORY_META.findIndex((c) => c.name === a.data.category);
+    const cb = CATEGORY_META.findIndex((c) => c.name === b.data.category);
+    if (ca !== cb) return ca - cb;
+    if (a.data.difficulty !== b.data.difficulty) return a.data.difficulty - b.data.difficulty;
+    return a.data.title.localeCompare(b.data.title, 'ko');
+  },
+);
+const catCounts = new Map<string, number>();
+for (const e of all) catCounts.set(e.data.category, (catCounts.get(e.data.category) ?? 0) + 1);
+---
+
+<Base active="home">
+  <section class="hero">
+    <div class="container">
+      <h1>{SITE_NAME}</h1>
+      <p class="lead">{SITE_DESC}</p>
+      <div class="stats">
+        <span>기법 <b>{all.length}</b>개</span>
+        <span>카테고리 <b>{CATEGORY_META.length}</b>개</span>
+        <span>한국 · 미국 시장</span>
+      </div>
+      <div class="search-wrap">
+        <span class="icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+          </svg>
+        </span>
+        <input
+          type="search"
+          id="search"
+          class="search-input"
+          placeholder="기법 이름, 태그, 키워드로 검색 (예: 돌파, RSI, 가치투자)"
+          autocomplete="off"
+        />
+      </div>
+      <div class="chip-row" id="category-chips">
+        <button class="chip active" data-cat="">전체</button>
+        {CATEGORY_META.map((c) => (
+          <button class="chip" data-cat={c.name}>
+            <span>{c.icon}</span>
+            <span>{c.name}</span>
+            <span style="opacity:.6">{catCounts.get(c.name) ?? 0}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="grid" id="technique-grid">
+      {all.map((entry) => <TechniqueCard entry={entry} />)}
+    </div>
+    <p class="empty-note" id="no-results" hidden>검색 결과가 없습니다. 다른 키워드로 시도해 보세요.</p>
+  </section>
+
+  <CardScripts />
+
+  <script>
+    const input = document.getElementById('search') as HTMLInputElement;
+    const chips = document.querySelectorAll<HTMLButtonElement>('#category-chips .chip');
+    const cards = document.querySelectorAll<HTMLElement>('#technique-grid .card');
+    const noResults = document.getElementById('no-results')!;
+    let activeCat = '';
+
+    function apply() {
+      const q = input.value.trim().toLowerCase();
+      let visible = 0;
+      cards.forEach((card) => {
+        const okCat = !activeCat || card.dataset.category === activeCat;
+        const okQ = !q || (card.dataset.search ?? '').includes(q);
+        const show = okCat && okQ;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      noResults.hidden = visible > 0;
+    }
+
+    input.addEventListener('input', apply);
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCat = chip.dataset.cat ?? '';
+        apply();
+      });
+    });
+
+    // URL ?q= 또는 ?cat= 파라미터 지원 (태그/카테고리 링크에서 진입)
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q');
+    const cat = params.get('cat');
+    if (q) { input.value = q; }
+    if (cat) {
+      chips.forEach((c) => {
+        if (c.dataset.cat === cat) c.click();
+      });
+    }
+    if (q) apply();
+  </script>
+</Base>

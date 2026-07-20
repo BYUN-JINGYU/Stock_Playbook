@@ -1,0 +1,46 @@
+---
+/**
+ * 카드 그리드 공용 클라이언트 스크립트:
+ * 북마크 토글 + 읽음 표시를 localStorage와 동기화한다.
+ * 카드 그리드가 있는 페이지에서 한 번만 포함.
+ */
+---
+<script>
+  const BM_KEY = 'sp:bookmarks';
+  const READ_KEY = 'sp:read';
+
+  function getSet(key: string): Set<string> {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+    } catch {
+      return new Set();
+    }
+  }
+  function saveSet(key: string, set: Set<string>) {
+    localStorage.setItem(key, JSON.stringify([...set]));
+  }
+
+  const bookmarks = getSet(BM_KEY);
+  const read = getSet(READ_KEY);
+
+  document.querySelectorAll<HTMLElement>('.card[data-id]').forEach((card) => {
+    const id = card.dataset.id!;
+    if (read.has(id)) card.classList.add('is-read');
+    const btn = card.querySelector<HTMLButtonElement>('[data-bookmark]');
+    if (!btn) return;
+    if (bookmarks.has(id)) btn.classList.add('active');
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (bookmarks.has(id)) {
+        bookmarks.delete(id);
+        btn.classList.remove('active');
+      } else {
+        bookmarks.add(id);
+        btn.classList.add('active');
+      }
+      saveSet(BM_KEY, bookmarks);
+      document.dispatchEvent(new CustomEvent('sp:bookmarks-changed'));
+    });
+  });
+</script>

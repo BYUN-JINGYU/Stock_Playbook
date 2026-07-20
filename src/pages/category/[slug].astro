@@ -1,0 +1,47 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import TechniqueCard from '../../components/TechniqueCard.astro';
+import CardScripts from '../../components/CardScripts.astro';
+import { CATEGORY_META, withBase } from '../../utils/site';
+
+export async function getStaticPaths() {
+  return CATEGORY_META.map((cat) => ({ params: { slug: cat.slug }, props: { cat } }));
+}
+
+const { cat } = Astro.props;
+const entries = (
+  await getCollection('techniques', ({ data }) => !data.draft && data.category === cat.name)
+).sort((a, b) => {
+  if (a.data.difficulty !== b.data.difficulty) return a.data.difficulty - b.data.difficulty;
+  return a.data.title.localeCompare(b.data.title, 'ko');
+});
+---
+
+<Base title={cat.name} description={cat.desc}>
+  <section class="hero">
+    <div class="container">
+      <h1>{cat.icon} {cat.name}</h1>
+      <p class="lead">{cat.desc}</p>
+      <div class="stats"><span>기법 <b>{entries.length}</b>개</span></div>
+      <div class="chip-row">
+        <a class="chip" href={withBase('/')}>← 전체 기법</a>
+        {CATEGORY_META.filter((c) => c.slug !== cat.slug).map((c) => (
+          <a class="chip" href={withBase(`/category/${c.slug}`)}>
+            <span>{c.icon}</span>
+            <span>{c.name}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="grid">
+      {entries.map((entry) => <TechniqueCard entry={entry} />)}
+    </div>
+    {entries.length === 0 && <p class="empty-note">아직 이 카테고리에 등록된 기법이 없습니다.</p>}
+  </section>
+
+  <CardScripts />
+</Base>

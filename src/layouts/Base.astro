@@ -1,0 +1,91 @@
+---
+import '../styles/global.css';
+import { SITE_NAME, SITE_DESC, withBase } from '../utils/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  active?: string;
+}
+
+const { title, description = SITE_DESC, active = '' } = Astro.props;
+const pageTitle = title ? `${title} · ${SITE_NAME}` : SITE_NAME;
+
+const nav = [
+  { href: '/', key: 'home', label: '전체 기법' },
+  { href: '/my', key: 'my', label: '내 학습' },
+  { href: '/about', key: 'about', label: '소개' },
+];
+---
+
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link
+      rel="icon"
+      href={`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>`}
+    />
+    <script is:inline>
+      // 테마 초기화 (FOUC 방지를 위해 head에서 즉시 실행)
+      (() => {
+        const saved = localStorage.getItem('sp:theme');
+        if (saved === 'dark' || saved === 'light') {
+          document.documentElement.dataset.theme = saved;
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container inner">
+        <a class="site-logo" href={withBase('/')}>
+          <span class="mark">📈</span>
+          <span>{SITE_NAME}</span>
+        </a>
+        <nav class="site-nav" aria-label="주 메뉴">
+          {nav.map((item) => (
+            <a
+              href={withBase(item.href)}
+              aria-current={active === item.key ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          ))}
+          <button class="theme-toggle" id="theme-toggle" aria-label="다크 모드 전환" title="다크 모드 전환">
+            <span aria-hidden="true">◐</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span><b>{SITE_NAME}</b> — 매매 기법 학습 라이브러리</span>
+        <span>
+          이 사이트의 모든 내용은 교육 목적으로 정리된 자료이며, 특정 종목의 매수·매도 추천이나
+          투자 자문이 아닙니다. 투자의 책임은 투자자 본인에게 있습니다.
+        </span>
+      </div>
+    </footer>
+
+    <script>
+      const btn = document.getElementById('theme-toggle');
+      btn?.addEventListener('click', () => {
+        const root = document.documentElement;
+        const current =
+          root.dataset.theme ||
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const next = current === 'dark' ? 'light' : 'dark';
+        root.dataset.theme = next;
+        localStorage.setItem('sp:theme', next);
+      });
+    </script>
+  </body>
+</html>

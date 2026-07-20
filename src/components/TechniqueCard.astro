@@ -1,0 +1,50 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import {
+  categoryByName,
+  difficultyLabel,
+  RELIABILITY_LABELS,
+  marketLabel,
+  withBase,
+} from '../utils/site';
+
+interface Props { entry: CollectionEntry<'techniques'> }
+const { entry } = Astro.props;
+const d = entry.data;
+const cat = categoryByName(d.category);
+const diff = difficultyLabel(d.difficulty);
+const diffClass = diff === '초급' ? 'diff-easy' : diff === '중급' ? 'diff-mid' : 'diff-hard';
+const stars = '★'.repeat(d.reliability) + '☆'.repeat(5 - d.reliability);
+const searchText = [d.title, d.summary, d.category, ...d.tags].join(' ').toLowerCase();
+---
+
+<article
+  class="card"
+  data-id={entry.id}
+  data-category={d.category}
+  data-search={searchText}
+>
+  <button
+    class="bookmark-btn"
+    data-bookmark={entry.id}
+    aria-label="북마크"
+    title="북마크"
+  >
+    <span class="off" aria-hidden="true">☆</span>
+    <span class="on" aria-hidden="true">★</span>
+  </button>
+  <div class="cat">
+    <span>{cat?.icon}</span>
+    <span>{d.category}</span>
+  </div>
+  <h3><a href={withBase(`/techniques/${entry.id}`)}>{d.title}</a></h3>
+  <p class="summary">{d.summary}</p>
+  <div class="meta-row">
+    <span class={`badge ${diffClass}`}>{diff}</span>
+    <span class="badge" title={`신뢰도: ${RELIABILITY_LABELS[d.reliability]}`}>
+      <span class="stars">{stars}</span>
+    </span>
+    {d.markets.map((m) => <span class="badge market">{marketLabel(m)}</span>)}
+    <span class="read-check">✓ 읽음</span>
+  </div>
+</article>

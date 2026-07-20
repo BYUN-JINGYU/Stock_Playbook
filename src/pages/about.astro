@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE_NAME, CATEGORY_META, withBase } from '../utils/site';
+---
+
+<Base title="소개" active="about">
+  <div class="container">
+    <header class="article-head">
+      <h1>이 사이트에 대하여</h1>
+      <p class="summary">
+        {SITE_NAME}은 한국·미국 주식시장에서 널리 알려진 매매 기법과 투자 전략을
+        한곳에 모아 공부할 수 있게 정리한 학습 라이브러리입니다.
+      </p>
+    </header>
+
+    <article class="prose">
+      <h2>무엇을 다루나요</h2>
+      <p>
+        기법마다 <strong>원리 → 진입·청산 규칙 → 차트 예시 → 장단점 → 흔한 실수</strong> 순서로
+        정리되어 있어, 이름만 들어본 기법도 실제로 어떻게 작동하는지 이해할 수 있습니다.
+        각 기법에는 <strong>난이도</strong>(초급/중급/고급)와 <strong>신뢰도</strong>(★ 1~5,
+        얼마나 오래·널리 검증되었는지)가 표시됩니다.
+      </p>
+      <ul>
+        {CATEGORY_META.map((c) => (
+          <li>
+            <a href={withBase(`/category/${c.slug}`)}>{c.icon} <strong>{c.name}</strong></a> — {c.desc}
+          </li>
+        ))}
+      </ul>
+
+      <h2>학습 기능</h2>
+      <ul>
+        <li><strong>검색·필터</strong> — 홈에서 기법 이름, 태그, 키워드로 바로 검색</li>
+        <li><strong>북마크(★)</strong> — 다시 볼 기법을 저장</li>
+        <li><strong>읽음 체크(✓)</strong> — 학습 진행률을 <a href={withBase('/my')}>내 학습</a>에서 확인</li>
+      </ul>
+      <p>북마크·읽음 데이터는 서버가 아닌 사용 중인 브라우저(localStorage)에만 저장됩니다.</p>
+
+      <h2>콘텐츠 업데이트 방식</h2>
+      <p>
+        이 사이트의 글은 마크다운 파일로 관리됩니다. 새 기법이 주기적으로 조사·초안 작성된 뒤
+        검토를 거쳐 게시되며, 잘못된 내용을 발견하면 언제든 수정됩니다.
+      </p>
+
+      <h2>면책 조항</h2>
+      <blockquote>
+        <p>
+          이 사이트의 모든 내용은 <strong>교육 및 정보 제공 목적</strong>으로만 작성되었습니다.
+          특정 종목·상품의 매수·매도 추천이나 투자 자문이 아니며, 어떤 기법도 수익을 보장하지
+          않습니다. 백테스트나 과거 사례가 미래 성과를 보장하지 않으며, 레버리지·단기 매매는
+          원금 손실 위험이 큽니다. 모든 투자 판단과 그 결과에 대한 책임은 투자자 본인에게 있습니다.
+        </p>
+      </blockquote>
+    </article>
+  </div>
+</Base>

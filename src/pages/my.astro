@@ -1,0 +1,89 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import TechniqueCard from '../components/TechniqueCard.astro';
+import CardScripts from '../components/CardScripts.astro';
+
+const all = (await getCollection('techniques', ({ data }) => !data.draft)).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title, 'ko'),
+);
+const total = all.length;
+---
+
+<Base title="내 학습" active="my">
+  <section class="hero">
+    <div class="container">
+      <h1>내 학습</h1>
+      <p class="lead">북마크한 기법과 학습 진행 상황입니다. 이 데이터는 이 브라우저에만 저장됩니다.</p>
+      <div class="progress-wrap">
+        <div class="progress-bar" role="progressbar" aria-label="학습 진행률">
+          <div class="fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <p class="progress-label"><b id="read-count">0</b> / {total}개 기법 읽음 (<span id="read-pct">0</span>%)</p>
+      </div>
+      <div class="chip-row" id="my-tabs">
+        <button class="chip active" data-tab="bookmarks">★ 북마크</button>
+        <button class="chip" data-tab="read">✓ 읽은 기법</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="grid" id="my-grid">
+      {all.map((entry) => <TechniqueCard entry={entry} />)}
+    </div>
+    <p class="empty-note" id="my-empty" hidden></p>
+  </section>
+
+  <CardScripts />
+
+  <script define:vars={{ total }}>
+    const grid = document.getElementById('my-grid');
+    const empty = document.getElementById('my-empty');
+    const tabs = document.querySelectorAll('#my-tabs .chip');
+    let tab = 'bookmarks';
+
+    function getSet(key) {
+      try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }
+      catch { return new Set(); }
+    }
+
+    function paintProgress() {
+      const read = getSet('sp:read');
+      const count = [...read].filter((id) =>
+        grid.querySelector(`.card[data-id="${CSS.escape(id)}"]`),
+      ).length;
+      const pct = total ? Math.round((count / total) * 100) : 0;
+      document.getElementById('read-count').textContent = String(count);
+      document.getElementById('read-pct').textContent = String(pct);
+      document.getElementById('progress-fill').style.width = pct + '%';
+    }
+
+    function apply() {
+      const wanted = tab === 'bookmarks' ? getSet('sp:bookmarks') : getSet('sp:read');
+      let visible = 0;
+      grid.querySelectorAll('.card[data-id]').forEach((card) => {
+        const show = wanted.has(card.dataset.id);
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      empty.hidden = visible > 0;
+      empty.textContent =
+        tab === 'bookmarks'
+          ? '아직 북마크한 기법이 없습니다. 카드의 ☆ 버튼을 눌러 저장해 보세요.'
+          : '아직 읽음으로 표시한 기법이 없습니다. 기법 페이지에서 "읽음으로 표시"를 눌러 보세요.';
+      paintProgress();
+    }
+
+    tabs.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        tabs.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        tab = chip.dataset.tab;
+        apply();
+      });
+    });
+    document.addEventListener('sp:bookmarks-changed', apply);
+    apply();
+  </script>
+</Base>
