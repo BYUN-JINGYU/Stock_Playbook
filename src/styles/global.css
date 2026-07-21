@@ -525,6 +525,22 @@ a:hover { text-decoration: underline; }
 }
 .prose hr { border: none; border-top: 1px solid var(--line); margin: 32px 0; }
 
+/* ── 예시 차트 섹션 (본문 뒤, 이해를 돕는 시각 자료) ── */
+.chart-section {
+  margin: 8px 0 36px;
+}
+.chart-section-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+.chart-section-lead {
+  font-size: 14.5px;
+  color: var(--ink-2);
+  margin: 0 0 4px;
+}
+
 /* ── 차트 피겨 ── */
 .chart-figure {
   margin: 26px 0;

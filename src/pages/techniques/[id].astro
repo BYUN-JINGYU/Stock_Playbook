@@ -70,8 +70,6 @@ const updated = d.updated.toLocaleDateString('ko-KR', { year: 'numeric', month: 
       </aside>
     )}
 
-    {d.charts.map((chart, i) => <ChartFigure chart={chart} index={i} />)}
-
     {d.watch_when.length > 0 && (
       <aside class="watch-when">
         <h2>🔔 이럴 때 주목</h2>
@@ -84,6 +82,16 @@ const updated = d.updated.toLocaleDateString('ko-KR', { year: 'numeric', month: 
     <article class="prose">
       <Content />
     </article>
+
+    {d.charts.length > 0 && (
+      <section class="chart-section">
+        <h2 class="chart-section-title">📊 예시로 보기</h2>
+        <p class="chart-section-lead">
+          앞서 설명한 내용을 가상의 예시 차트로 확인해 본다. 실제 시세가 아닌 개념 설명용 데이터다.
+        </p>
+        {d.charts.map((chart, i) => <ChartFigure chart={chart} index={i} />)}
+      </section>
+    )}
 
     {d.tags.length > 0 && (
       <div class="tag-row">
