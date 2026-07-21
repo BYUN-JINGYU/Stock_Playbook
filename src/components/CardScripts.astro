@@ -1,13 +1,14 @@
 ---
 /**
  * 카드 그리드 공용 클라이언트 스크립트:
- * 북마크 토글 + 읽음 표시를 localStorage와 동기화한다.
+ * 북마크 토글 + 읽음 표시 + 카드형/목록형 보기 전환을 localStorage와 동기화한다.
  * 카드 그리드가 있는 페이지에서 한 번만 포함.
  */
 ---
 <script>
   const BM_KEY = 'sp:bookmarks';
   const READ_KEY = 'sp:read';
+  const VIEW_KEY = 'sp:view';
 
   function getSet(key: string): Set<string> {
     try {
@@ -43,4 +44,23 @@
       document.dispatchEvent(new CustomEvent('sp:bookmarks-changed'));
     });
   });
+
+  const grid = document.querySelector<HTMLElement>('.grid');
+  const viewButtons = document.querySelectorAll<HTMLButtonElement>('#view-toggle .view-btn');
+
+  function applyView(view: string) {
+    grid?.classList.toggle('list-view', view === 'list');
+    viewButtons.forEach((b) => b.classList.toggle('active', b.dataset.view === view));
+  }
+
+  if (grid && viewButtons.length) {
+    applyView(localStorage.getItem(VIEW_KEY) || 'card');
+    viewButtons.forEach((b) => {
+      b.addEventListener('click', () => {
+        const view = b.dataset.view ?? 'card';
+        localStorage.setItem(VIEW_KEY, view);
+        applyView(view);
+      });
+    });
+  }
 </script>

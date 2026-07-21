@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import TechniqueCard from '../components/TechniqueCard.astro';
 import CardScripts from '../components/CardScripts.astro';
+import ViewToggle from '../components/ViewToggle.astro';
 import { SITE_NAME, SITE_DESC, CATEGORY_META, withBase } from '../utils/site';
 
 const all = (await getCollection('techniques', ({ data }) => !data.draft)).sort(
@@ -56,6 +57,7 @@ for (const e of all) catCounts.set(e.data.category, (catCounts.get(e.data.catego
   </section>
 
   <section class="container">
+    <ViewToggle />
     <div class="grid" id="technique-grid">
       {all.map((entry) => <TechniqueCard entry={entry} />)}
     </div>

@@ -233,12 +233,99 @@ a:hover { text-decoration: underline; }
   color: #fff;
 }
 
+/* ── 보기 전환 토글 ── */
+.grid-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 26px 0 -4px;
+}
+.view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.view-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.view-btn:hover { color: var(--ink); background: var(--surface-2); }
+.view-btn.active { background: var(--accent); color: #fff; }
+
 /* ── 카드 그리드 ── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
   margin: 26px 0 60px;
+}
+
+/* ── 목록형 보기 ── */
+.grid.list-view {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.grid.list-view .card {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 46px 11px 16px;
+}
+.grid.list-view .card .cat {
+  flex: 0 0 auto;
+  width: 128px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.grid.list-view .card h3 {
+  flex: 0 0 auto;
+  width: 220px;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.grid.list-view .card .summary {
+  flex: 1 1 auto;
+  margin: 0;
+  -webkit-line-clamp: 1;
+  min-width: 0;
+}
+.grid.list-view .card .meta-row {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+.grid.list-view .card .read-check { margin-left: 4px; }
+.grid.list-view .bookmark-btn {
+  top: 50%;
+  transform: translateY(-50%);
+}
+@media (max-width: 760px) {
+  .grid.list-view .card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px 18px 15px;
+  }
+  .grid.list-view .card .cat,
+  .grid.list-view .card h3 {
+    width: auto;
+    white-space: normal;
+  }
+  .grid.list-view .card .summary { -webkit-line-clamp: 2; }
+  .grid.list-view .bookmark-btn {
+    top: 12px;
+    transform: none;
+  }
 }
 .card {
   position: relative;

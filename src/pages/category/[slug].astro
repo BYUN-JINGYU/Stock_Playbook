@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import TechniqueCard from '../../components/TechniqueCard.astro';
 import CardScripts from '../../components/CardScripts.astro';
+import ViewToggle from '../../components/ViewToggle.astro';
 import { CATEGORY_META, withBase } from '../../utils/site';
 
 export async function getStaticPaths() {
@@ -37,6 +38,7 @@ const entries = (
   </section>
 
   <section class="container">
+    {entries.length > 0 && <ViewToggle />}
     <div class="grid">
       {entries.map((entry) => <TechniqueCard entry={entry} />)}
     </div>

@@ -1,0 +1,25 @@
+---
+/**
+ * 카드형/목록형 보기 전환 토글. CardScripts.astro의 스크립트가 동작을 담당한다.
+ * 그리드를 렌더링하는 각 페이지에서 그리드 바로 위에 배치한다.
+ */
+---
+<div class="grid-toolbar">
+  <div class="view-toggle" id="view-toggle" role="group" aria-label="보기 방식 전환">
+    <button type="button" class="view-btn active" data-view="card" aria-label="카드형 보기" title="카드형 보기">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="8" height="8" rx="1.5" />
+        <rect x="13" y="3" width="8" height="8" rx="1.5" />
+        <rect x="3" y="13" width="8" height="8" rx="1.5" />
+        <rect x="13" y="13" width="8" height="8" rx="1.5" />
+      </svg>
+    </button>
+    <button type="button" class="view-btn" data-view="list" aria-label="목록형 보기" title="목록형 보기">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="6" x2="20" y2="6" />
+        <line x1="4" y1="12" x2="20" y2="12" />
+        <line x1="4" y1="18" x2="20" y2="18" />
+      </svg>
+    </button>
+  </div>
+</div>
