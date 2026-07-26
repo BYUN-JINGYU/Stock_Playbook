@@ -23,8 +23,10 @@ jobs:
       - name: Build with Astro
         uses: withastro/action@v3
         env:
-          SITE_URL: https://${{ github.repository_owner }}.github.io
-          BASE_PATH: /${{ github.event.repository.name }}
+          # 커스텀 도메인은 루트에서 서빙되므로 base는 '/'
+          # (github.io 하위 경로로 되돌리려면 아래를 원래대로 바꾸고 CNAME 파일을 지운다)
+          SITE_URL: https://jusikgongbu.org
+          BASE_PATH: /
 
   deploy:
     needs: build
