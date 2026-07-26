@@ -51,3 +51,9 @@ export function withBase(path: string): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   return base + path;
 }
+
+// ── AdSense ──
+// 승인 후 발급받은 게시자 ID를 넣으면 광고가 활성화된다 (예: 'ca-pub-1234567890123456').
+// 빈 문자열이면 광고 스크립트·슬롯이 아예 렌더링되지 않는다.
+export const ADSENSE_CLIENT = (import.meta.env.PUBLIC_ADSENSE_CLIENT ?? '').trim();
+export const ADSENSE_ENABLED = /^ca-pub-\d{10,}$/.test(ADSENSE_CLIENT);

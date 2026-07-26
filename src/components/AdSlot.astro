@@ -1,0 +1,35 @@
+---
+/**
+ * AdSense 광고 슬롯.
+ *
+ * PUBLIC_ADSENSE_CLIENT 환경변수가 설정돼 있을 때만 렌더링되고,
+ * 없으면 아무것도 출력하지 않는다(승인 전 빈 광고 자리 방지).
+ *
+ * slot: AdSense에서 광고 단위를 만들면 발급되는 숫자 ID.
+ */
+import { ADSENSE_CLIENT, ADSENSE_ENABLED } from '../utils/site';
+
+interface Props {
+  slot?: string;
+  label?: string;
+}
+const { slot, label = '광고' } = Astro.props;
+const show = ADSENSE_ENABLED && !!slot;
+---
+
+{show && (
+  <aside class="ad-slot" aria-label={label}>
+    <span class="ad-slot-label">{label}</span>
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client={ADSENSE_CLIENT}
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
+    <script is:inline>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </aside>
+)}

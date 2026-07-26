@@ -678,3 +678,23 @@ a:hover { text-decoration: underline; }
   .hero { padding: 36px 0 22px; }
   .grid { grid-template-columns: 1fr; }
 }
+
+/* ── 푸터 링크 ── */
+.foot-link { margin-left: 10px; color: var(--accent-ink); text-decoration: none; }
+.foot-link:hover { text-decoration: underline; }
+
+/* ── 광고 슬롯 ── */
+.ad-slot {
+  display: block;
+  margin: 30px 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+  min-height: 60px;
+}
+.ad-slot-label {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
