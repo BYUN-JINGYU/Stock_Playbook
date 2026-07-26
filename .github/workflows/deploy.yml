@@ -30,6 +30,8 @@ jobs:
           # 구글 애드센스 게시자 ID (공개 정보 — 모든 페이지 소스에 노출되는 값이다)
           # 비우면 광고 스크립트가 전혀 삽입되지 않는다.
           PUBLIC_ADSENSE_CLIENT: ca-pub-4765583252345532
+          # 검색엔진 소유권 확인 코드 (공개 값)
+          PUBLIC_NAVER_VERIFY: d809f330caa22b0b8b03089d0be2234e7fc87ca7
 
   deploy:
     needs: build
