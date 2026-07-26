@@ -12,10 +12,35 @@ import {
 
 export async function getStaticPaths() {
   const entries = await getCollection('techniques', ({ data }) => !data.draft);
-  return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+  return entries.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry, all: entries },
+  }));
 }
 
-const { entry } = Astro.props;
+const { entry, all } = Astro.props;
+
+/**
+ * 관련 기법 추천 — 태그가 겹칠수록, 같은 카테고리일수록 높은 점수.
+ * 본문의 "같이 쓰면 좋은 기법"이 평문이라 서로 이동할 수단이 없었기에 링크를 만든다.
+ */
+function relatedTo(cur: (typeof all)[number]) {
+  const curTags = new Set(cur.data.tags);
+  return all
+    .filter((e) => e.id !== cur.id)
+    .map((e) => {
+      const shared = e.data.tags.filter((t) => curTags.has(t)).length;
+      const sameCat = e.data.category === cur.data.category ? 1 : 0;
+      return { e, score: shared * 3 + sameCat };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) =>
+      b.score - a.score || a.e.data.title.localeCompare(b.e.data.title, 'ko'),
+    )
+    .slice(0, 6)
+    .map((x) => x.e);
+}
+const related = relatedTo(entry);
 const { Content } = await render(entry);
 const d = entry.data;
 const cat = categoryByName(d.category);
@@ -111,6 +136,26 @@ const updated = d.updated.toLocaleDateString('ko-KR', { year: 'numeric', month: 
         </p>
         {d.charts.map((chart, i) => <ChartFigure chart={chart} index={i} />)}
       </section>
+    )}
+
+    {related.length > 0 && (
+      <nav class="related" aria-label="관련 기법">
+        <h2>함께 보면 좋은 기법</h2>
+        <ul>
+          {related.map((r) => {
+            const rc = categoryByName(r.data.category);
+            return (
+              <li>
+                <a href={withBase(`/techniques/${r.id}`)}>
+                  <span class="r-cat">{rc?.icon} {r.data.category}</span>
+                  <span class="r-title">{r.data.title}</span>
+                  <span class="r-sum">{r.data.summary}</span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
     )}
 
     {d.tags.length > 0 && (
