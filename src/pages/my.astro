@@ -11,7 +11,7 @@ const all = (await getCollection('techniques', ({ data }) => !data.draft)).sort(
 const total = all.length;
 ---
 
-<Base title="내 학습" active="my">
+<Base title="내 학습" active="my" noindex={true}>
   <section class="hero">
     <div class="container">
       <h1>내 학습</h1>

@@ -19,7 +19,23 @@ const catCounts = new Map<string, number>();
 for (const e of all) catCounts.set(e.data.category, (catCounts.get(e.data.category) ?? 0) + 1);
 ---
 
-<Base active="home">
+<Base
+  active="home"
+  description={`주식 공부를 처음 시작하는 사람도 따라갈 수 있게, 차트 분석과 매매 기법 ${all.length}편을 원리·진입·청산·손절 규칙까지 정리했습니다. 차트 패턴, 보조지표, 거시 경제지표, 리스크 관리를 한곳에서.`}
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: 'https://jusikgongbu.org',
+    inLanguage: 'ko',
+    description: SITE_DESC,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://jusikgongbu.org/?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  }}
+>
   <section class="hero">
     <div class="container">
       <h1>{SITE_NAME}</h1>

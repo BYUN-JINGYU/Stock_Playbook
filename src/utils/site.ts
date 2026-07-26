@@ -1,4 +1,6 @@
 export const SITE_NAME = '주식 기법 플레이북';
+// 홈 <title> — 검색 노출을 고려해 핵심어를 자연스럽게 포함한다
+export const HOME_TITLE = '주식 기법 플레이북 — 주식 공부·차트 분석·매매 기법 정리';
 export const SITE_DESC =
   '한국·미국 주식시장의 매매 기법을 한곳에 모아 정리한 학습 라이브러리. 원리, 진입·청산 규칙, 차트 예시, 흔한 실수까지.';
 

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# /my 는 개인 학습 데이터 페이지다. 크롤은 허용하되(그래야 noindex 태그를 읽는다)
+# 페이지 자체에 noindex를 걸어 색인에서 제외한다.
+
+Sitemap: https://jusikgongbu.org/sitemap-index.xml

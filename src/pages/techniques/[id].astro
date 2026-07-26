@@ -25,7 +25,27 @@ const stars = '★'.repeat(d.reliability) + '☆'.repeat(5 - d.reliability);
 const updated = d.updated.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 ---
 
-<Base title={d.title} description={d.summary}>
+<Base
+  title={d.title}
+  description={d.summary}
+  ogType="article"
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: d.title,
+    description: d.summary,
+    inLanguage: 'ko',
+    keywords: d.tags.join(', '),
+    articleSection: d.category,
+    dateModified: d.updated.toISOString().slice(0, 10),
+    author: { '@type': 'Organization', name: '주식 기법 플레이북' },
+    publisher: { '@type': 'Organization', name: '주식 기법 플레이북' },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://jusikgongbu.org/techniques/${entry.id}`,
+    },
+  }}
+>
   <div class="container">
     <header class="article-head">
       <nav class="crumb" aria-label="위치">
