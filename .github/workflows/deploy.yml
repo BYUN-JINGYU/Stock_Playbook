@@ -27,6 +27,9 @@ jobs:
           # (github.io 하위 경로로 되돌리려면 아래를 원래대로 바꾸고 CNAME 파일을 지운다)
           SITE_URL: https://jusikgongbu.org
           BASE_PATH: /
+          # 구글 애드센스 게시자 ID (공개 정보 — 모든 페이지 소스에 노출되는 값이다)
+          # 비우면 광고 스크립트가 전혀 삽입되지 않는다.
+          PUBLIC_ADSENSE_CLIENT: ca-pub-4765583252345532
 
   deploy:
     needs: build
