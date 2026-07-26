@@ -59,3 +59,8 @@ export function withBase(path: string): string {
 // 빈 문자열이면 광고 스크립트·슬롯이 아예 렌더링되지 않는다.
 export const ADSENSE_CLIENT = (import.meta.env.PUBLIC_ADSENSE_CLIENT ?? '').trim();
 export const ADSENSE_ENABLED = /^ca-pub-\d{10,}$/.test(ADSENSE_CLIENT);
+
+// ── 검색엔진 소유권 확인 ──
+// 서치콘솔/서치어드바이저에서 받은 content 값만 넣으면 된다 (태그 전체가 아니라 값만).
+export const GOOGLE_VERIFY = (import.meta.env.PUBLIC_GOOGLE_VERIFY ?? '').trim();
+export const NAVER_VERIFY = (import.meta.env.PUBLIC_NAVER_VERIFY ?? '').trim();

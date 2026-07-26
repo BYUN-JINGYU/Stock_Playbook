@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { SITE_NAME, SITE_DESC, HOME_TITLE, withBase, ADSENSE_CLIENT, ADSENSE_ENABLED } from '../utils/site';
+import { SITE_NAME, SITE_DESC, HOME_TITLE, withBase, ADSENSE_CLIENT, ADSENSE_ENABLED, GOOGLE_VERIFY, NAVER_VERIFY } from '../utils/site';
 
 interface Props {
   title?: string;
@@ -43,6 +43,8 @@ const nav = [
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {GOOGLE_VERIFY && <meta name="google-site-verification" content={GOOGLE_VERIFY} />}
+    {NAVER_VERIFY && <meta name="naver-site-verification" content={NAVER_VERIFY} />}
     {noindex && <meta name="robots" content="noindex, follow" />}
 
     {/* 소셜 공유 미리보기 (카카오톡·트위터·페이스북 등) */}
