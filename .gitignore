@@ -2,3 +2,8 @@ node_modules/
 dist/
 .astro/
 .DS_Store
+
+# 스캐너: 시세 캐시와 생성된 리포트는 커밋하지 않는다 (데이터 재배포 방지)
+tools/scanner/.cache/
+tools/scanner/report/
+__pycache__/
