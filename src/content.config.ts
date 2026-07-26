@@ -13,6 +13,9 @@ const chart = z.object({
   title: z.string(),
   description: z.string().optional(),
   kind: z.enum(['candle', 'line']).default('candle'),
+  // 실제 시장 데이터로 그린 차트인지 여부. true면 캡션에 출처를 표기한다.
+  real: z.boolean().default(false),
+  source: z.string().optional(), // 예: "삼성전자(005930) 2024-02~04 · Yahoo Finance"
   candles: z.array(candle).min(5),
   hlines: z
     .array(z.object({ price: z.number(), label: z.string().optional() }))

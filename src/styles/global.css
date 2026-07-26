@@ -563,6 +563,7 @@ a:hover { text-decoration: underline; }
   flex-wrap: wrap;
 }
 .chart-legend .key { display: inline-flex; align-items: center; gap: 5px; }
+.chart-legend .key.is-real { color: var(--accent-ink); font-weight: 700; }
 .chart-legend .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
 /* ── 태그 ── */

@@ -292,7 +292,11 @@ const uid = `cf${index}`;
       {smaPaths.map((s) => (
         <span class="key"><span class="swatch" style={`background:var(${s.colorVar})`}></span>{s.label}</span>
       ))}
-      <span class="key">※ 개념 설명용 예시 차트 (실제 시세 아님)</span>
+      {chart.real ? (
+        <span class="key is-real">※ 실제 시세{chart.source ? ` · ${chart.source}` : ''}</span>
+      ) : (
+        <span class="key">※ 개념 설명용 예시 차트 (실제 시세 아님)</span>
+      )}
     </div>
   </figcaption>
 </figure>
