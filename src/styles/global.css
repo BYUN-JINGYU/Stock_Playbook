@@ -752,3 +752,86 @@ a:hover { text-decoration: underline; }
   color: var(--ink-2);
   line-height: 1.5;
 }
+
+/* ── 학습 경로 (/start) ── */
+.progress-hint { color: var(--muted); font-weight: 400; }
+.path { list-style: none; padding: 0; margin: 26px 0 40px; }
+.step {
+  position: relative;
+  border-left: 2px solid var(--line);
+  padding: 0 0 34px 26px;
+  margin-left: 15px;
+}
+.step:last-child { border-left-color: transparent; padding-bottom: 12px; }
+.step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.step-num {
+  position: absolute;
+  left: -16px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+.step-head h2 { margin: 0; font-size: 19px; letter-spacing: -0.01em; }
+.step-time { font-size: 12px; color: var(--muted); }
+.step-why {
+  margin: 0 0 14px;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  line-height: 1.65;
+  max-width: 62ch;
+}
+.step-list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.step-list a {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 10px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: inherit;
+}
+.step-list a:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+  text-decoration: none;
+}
+.step-list .check {
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--muted);
+  font-size: 15px;
+}
+.step-list .s-title { font-weight: 700; font-size: 14.5px; color: var(--ink); }
+.step-list .s-sum {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.step-list li.is-done .check { color: var(--good); font-weight: 700; }
+.step-list li.is-done .s-title { color: var(--muted); }
+.step-more { font-size: 13px; font-weight: 700; }
+.path-end {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 20px 22px;
+  margin: 0 0 60px;
+}
+.path-end h2 { margin: 0 0 8px; font-size: 17px; }
+.path-end p { margin: 0 0 10px; color: var(--ink-2); font-size: 14.5px; line-height: 1.7; }
+.path-caution { font-size: 13px !important; color: var(--muted) !important; margin: 0 !important; }
+@media (max-width: 620px) {
+  .step { padding-left: 20px; margin-left: 13px; }
+  .step-head h2 { font-size: 17px; }
+}

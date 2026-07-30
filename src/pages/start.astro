@@ -1,0 +1,186 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { withBase } from '../utils/site';
+
+const all = await getCollection('techniques', ({ data }) => !data.draft);
+const bySlug = new Map(all.map((e) => [e.id, e]));
+
+/**
+ * 초보자 학습 경로.
+ * 117편 전부를 순서대로 읽으라고 하면 아무도 못 끝낸다. 단계별로 꼭 필요한 것만
+ * 골라 배열하고, 나머지는 각 단계 끝에서 카테고리로 연결한다.
+ *
+ * 순서에서 중요한 원칙: 2단계(리스크 관리)를 기법보다 먼저 둔다.
+ * 매매 기법을 먼저 배우면 손실 관리 없이 실전에 들어가기 쉽기 때문이다.
+ */
+const STEPS = [
+  {
+    n: 1,
+    title: '차트 읽는 법부터',
+    why: '무엇을 사고팔지 정하기 전에, 차트가 무슨 말을 하는지 읽을 줄 알아야 한다. 여기 다섯 편이 나머지 모든 글의 공통 언어다.',
+    time: '약 1주',
+    slugs: ['support-resistance', 'moving-average', 'candlestick-patterns', 'volume-obv', 'dow-theory'],
+    more: { label: '차트 패턴 전체 보기', href: '/category/chart-patterns' },
+  },
+  {
+    n: 2,
+    title: '기법보다 먼저 — 잃지 않는 법',
+    why: '많은 초보자가 이 단계를 건너뛰고 기법부터 배우다 크게 잃는다. 손절 기준과 자금 관리 없이 하는 매매는 기법이 아무리 좋아도 오래가지 못한다. 순서를 바꾸지 않기를 권한다.',
+    time: '약 1주',
+    slugs: ['stop-loss', 'position-sizing', 'trading-costs-tax', 'trading-psychology'],
+    more: { label: '리스크·심리 전체 보기', href: '/category/risk-psychology' },
+  },
+  {
+    n: 3,
+    title: '대표 보조지표 익히기',
+    why: '지표는 많이 아는 것보다 서너 개를 정확히 아는 편이 낫다. 가장 널리 쓰이는 네 가지의 계산 원리와 한계를 먼저 잡는다.',
+    time: '약 1~2주',
+    slugs: ['rsi', 'macd', 'bollinger-bands', 'stochastic'],
+    more: { label: '보조지표 전체 보기', href: '/category/indicators' },
+  },
+  {
+    n: 4,
+    title: '패턴과 추세 매매',
+    why: '1~3단계를 익혔다면 이제 진입·청산 규칙이 있는 실제 기법을 볼 차례다. 반전 패턴과 추세 추종을 함께 다룬다.',
+    time: '약 2주',
+    slugs: ['double-top-bottom', 'head-and-shoulders', 'box-range', 'breakout-52week', 'pullback'],
+    more: { label: '추세·모멘텀 전체 보기', href: '/category/momentum' },
+  },
+  {
+    n: 5,
+    title: '시장 전체를 읽는 눈',
+    why: '개별 종목 차트만 봐서는 시장이 통째로 흔들릴 때 대응하지 못한다. 금리·환율·변동성이 주가에 어떤 경로로 영향을 주는지, 언제 확인해야 하는지를 익힌다.',
+    time: '약 2주',
+    slugs: ['base-rate', 'usd-krw', 'vix', 'yield-curve', 'korea-exports'],
+    more: { label: '거시·경제지표 전체 보기', href: '/category/macro-indicators' },
+  },
+  {
+    n: 6,
+    title: '장기 투자와 시스템화',
+    why: '단기 매매가 맞지 않는 사람도 많다. 기업 가치에 기반한 접근과, 규칙을 정해 반복하는 방식을 알아두면 자기에게 맞는 길을 고를 수 있다.',
+    time: '약 2~3주',
+    slugs: ['value-investing-basics', 'dividend-investing', 'dca', 'asset-allocation', 'trading-journal'],
+    more: { label: '가치·성장 투자 전체 보기', href: '/category/value-growth' },
+  },
+];
+
+const steps = STEPS.map((s) => ({
+  ...s,
+  items: s.slugs.map((sl) => bySlug.get(sl)).filter(Boolean),
+}));
+const totalCount = steps.reduce((n, s) => n + s.items.length, 0);
+
+const desc = `주식 공부를 어디서부터 시작할지 막막하다면. 차트 읽기 → 리스크 관리 → 지표 → 매매 기법 순서로 ${totalCount}편을 단계별로 정리했습니다.`;
+---
+
+<Base
+  active="start"
+  title="주식 공부 순서"
+  description={desc}
+  jsonLd={{
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: '주식 공부 순서 — 초보자 학습 경로',
+    description: desc,
+    inLanguage: 'ko',
+    totalTime: 'P70D',
+    step: steps.map((s) => ({
+      '@type': 'HowToStep',
+      position: s.n,
+      name: s.title,
+      text: s.why,
+      url: `https://jusikgongbu.org/start#step-${s.n}`,
+    })),
+  }}
+>
+  <section class="hero">
+    <div class="container">
+      <h1>주식 공부, 어디서부터 시작할까</h1>
+      <p class="lead">
+        기법을 아무거나 골라 읽으면 머리에 남지 않는다. 차트 읽기 → 리스크 관리 →
+        보조지표 → 매매 기법 → 시장 읽기 순서로, 꼭 필요한 {totalCount}편만 골라
+        단계별로 배열했다.
+      </p>
+      <div class="stats">
+        <span>6단계</span>
+        <span>핵심 <b>{totalCount}</b>편</span>
+        <span>전체 <b>{all.length}</b>편 중</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" role="progressbar" aria-label="학습 진행률">
+          <div class="fill" id="path-fill" style="width:0%"></div>
+        </div>
+        <p class="progress-label">
+          <b id="path-done">0</b> / {totalCount}편 읽음 (<span id="path-pct">0</span>%)
+          <span class="progress-hint">— 각 글에서 "읽음으로 표시"를 누르면 여기에 반영됩니다</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <ol class="path">
+      {steps.map((s) => (
+        <li class="step" id={`step-${s.n}`}>
+          <div class="step-head">
+            <span class="step-num">{s.n}</span>
+            <div>
+              <h2>{s.title}</h2>
+              <span class="step-time">{s.time}</span>
+            </div>
+          </div>
+          <p class="step-why">{s.why}</p>
+          <ul class="step-list">
+            {s.items.map((e) => (
+              <li data-id={e.id}>
+                <a href={withBase(`/techniques/${e.id}`)}>
+                  <span class="check" aria-hidden="true">○</span>
+                  <span class="s-title">{e.data.title}</span>
+                  <span class="s-sum">{e.data.summary}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a class="step-more" href={withBase(s.more.href)}>{s.more.label} →</a>
+        </li>
+      ))}
+    </ol>
+
+    <aside class="path-end">
+      <h2>6단계를 마쳤다면</h2>
+      <p>
+        여기까지 왔다면 대부분의 매매 관련 글을 스스로 읽을 수 있는 상태다.
+        관심 가는 주제를 골라 <a href={withBase('/')}>전체 {all.length}편</a>에서
+        이어가면 된다. 하모닉 패턴·페어 트레이딩처럼 난이도가 높은 것,
+        CDS 프리미엄·신용 스프레드처럼 위기 국면에 쓰는 지표들이 남아 있다.
+      </p>
+      <p class="path-caution">
+        ⚠️ 순서대로 읽는다고 수익이 보장되지는 않는다. 이 사이트의 모든 내용은
+        교육 목적의 정리 자료이며, 어떤 기법도 항상 통하지 않는다. 소액으로
+        충분히 연습한 뒤에 판단하기를 권한다.
+      </p>
+    </aside>
+  </section>
+
+  <script define:vars={{ totalCount }}>
+    // 각 기법 페이지에서 저장한 읽음 기록(localStorage)을 학습 경로에 반영한다.
+    const read = (() => {
+      try { return new Set(JSON.parse(localStorage.getItem('sp:read') || '[]')); }
+      catch { return new Set(); }
+    })();
+
+    let done = 0;
+    document.querySelectorAll('.step-list li[data-id]').forEach((li) => {
+      if (read.has(li.dataset.id)) {
+        li.classList.add('is-done');
+        li.querySelector('.check').textContent = '✓';
+        done++;
+      }
+    });
+    const pct = totalCount ? Math.round((done / totalCount) * 100) : 0;
+    document.getElementById('path-done').textContent = String(done);
+    document.getElementById('path-pct').textContent = String(pct);
+    document.getElementById('path-fill').style.width = pct + '%';
+  </script>
+</Base>
